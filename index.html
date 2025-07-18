@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Slider of Doom</title>
-  <style>
+  <style id="themeStyle">
     body {
       font-family: sans-serif;
       text-align: center;
       margin: 50px;
       background: #f2f2f2;
-      overflow: hidden;
+      color: #000;
     }
     .slider {
       width: 60%;
@@ -26,11 +26,20 @@
       padding: 10px;
       font-size: 14px;
       animation: pop 0.3s ease;
-      z-index: 1000;
     }
     @keyframes pop {
       from { transform: scale(0.5); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
+    }
+    #xfceTerminal {
+      display: none;
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      font-family: monospace;
+      margin: 20px auto;
+      width: 80%;
+      text-align: left;
     }
   </style>
 </head>
@@ -45,6 +54,22 @@
     <option value="5">Hard (5 sliders)</option>
     <option value="10">Insanity (10 sliders)</option>
   </select>
+
+  <label for="theme">Theme:</label>
+  <select id="theme">
+    <option value="default">Default</option>
+    <option value="winxp">Windows XP</option>
+    <option value="win95">Windows 95</option>
+    <option value="win10">Windows 10</option>
+    <option value="win7">Windows 7</option>
+    <option value="win2000">Windows 2000</option>
+    <option value="discord">Discord</option>
+    <option value="xfce">XFCE Linux</option>
+    <option value="kde">KDE</option>
+    <option value="gnome">GNOME</option>
+    <option value="ubuntu">imagineusingubuntu</option>
+  </select>
+
   <button onclick="startGame()">Start Game</button>
 
   <div id="gameArea"></div>
@@ -55,19 +80,24 @@
     <button onclick="startGame()">Restart</button>
   </div>
 
+  <div id="xfceTerminal"></div>
+
   <script>
     const gameArea = document.getElementById('gameArea');
     const timerDisplay = document.getElementById('timer');
     const lostScreen = document.getElementById('lostScreen');
     const difficultySelect = document.getElementById('difficulty');
+    const themeSelect = document.getElementById('theme');
+    const xfceTerminal = document.getElementById('xfceTerminal');
+    const themeStyle = document.getElementById('themeStyle');
 
     let sliders = [];
     let sliderValues = [];
-    let lastMoved = [];
     let gameInterval;
     let time = 0;
 
     function startGame() {
+      applyTheme(themeSelect.value);
       reset();
 
       const difficulty = parseInt(difficultySelect.value);
@@ -78,17 +108,14 @@
         slider.max = 100;
         slider.value = 100;
         slider.classList.add('slider');
-        slider.dataset.index = i;
 
+        slider.dataset.index = i;
         gameArea.appendChild(slider);
 
         sliderValues[i] = 100;
-        lastMoved[i] = Date.now();
 
         slider.addEventListener('input', () => {
-          const val = parseInt(slider.value);
-          sliderValues[i] = val;
-          lastMoved[i] = Date.now();
+          sliderValues[i] = parseInt(slider.value);
         });
 
         sliders.push(slider);
@@ -100,9 +127,8 @@
         timerDisplay.textContent = `Time: ${time}s`;
 
         sliders.forEach((slider, i) => {
-          const now = Date.now();
-
-          if (now - lastMoved[i] > 1000 && sliderValues[i] > 0) {
+          // Decay even while being held
+          if (sliderValues[i] > 0) {
             sliderValues[i] -= 1;
             slider.value = sliderValues[i];
           }
@@ -113,7 +139,10 @@
         });
 
         maybeSpawnPopup();
-      }, 100);
+        if (themeSelect.value === "ubuntu" && Math.random() < 0.2) {
+          spawnUbuntuSpam();
+        }
+      }, 200);
     }
 
     function youLose() {
@@ -125,10 +154,11 @@
       clearInterval(gameInterval);
       sliders = [];
       sliderValues = [];
-      lastMoved = [];
       gameArea.innerHTML = "";
       lostScreen.style.display = "none";
       timerDisplay.textContent = "Time: 0s";
+      xfceTerminal.style.display = "none";
+      xfceTerminal.innerText = "";
       document.querySelectorAll(".popup").forEach(p => p.remove());
     }
 
@@ -145,14 +175,65 @@
           "🔥 Free Robux???",
           "💾 Updating Windows...",
           "🔊 LOUD SOUND INCOMING!!!",
-          "😈 You’re being watched",
-          "🧠 You just blinked"
+          "Woah, it's wulzy (gd reference)",
+          "😂 You thought you had this"
         ];
         popup.textContent = messages[Math.floor(Math.random() * messages.length)];
 
         document.body.appendChild(popup);
         setTimeout(() => popup.remove(), 2500);
       }
+    }
+
+    function spawnUbuntuSpam() {
+      const popup = document.createElement('div');
+      popup.classList.add('popup');
+      popup.style.left = Math.random() * 90 + "%";
+      popup.style.top = Math.random() * 90 + "%";
+      popup.textContent = "imagine being an Ubuntu user";
+      document.body.appendChild(popup);
+      setTimeout(() => popup.remove(), 1500);
+    }
+
+    function applyTheme(theme) {
+      let css = "";
+      switch (theme) {
+        case "winxp":
+          css = `body { background: skyblue; color: navy; }`;
+          break;
+        case "win95":
+          css = `body { background: #c0c0c0; color: black; font-family: "Courier New"; }`;
+          break;
+        case "win10":
+          css = `body { background: #0078d7; color: white; }`;
+          break;
+        case "win7":
+          css = `body { background: linear-gradient(#a6d2f7, #ffffff); color: #222; }`;
+          break;
+        case "win2000":
+          css = `body { background: #e0e0e0; color: #333; font-family: Tahoma; }`;
+          break;
+        case "discord":
+          css = `body { background: #2c2f33; color: #fff; font-family: 'Segoe UI', sans-serif; }`;
+          break;
+        case "xfce":
+          css = `body { background: #1c1c1c; color: #eee; font-family: monospace; }`;
+          xfceTerminal.style.display = "block";
+          xfceTerminal.innerText = "~ :3 ➜ fastfetch\nOS: Arch Linux x86_64\nDE: XFCE\nKernel: Linux 6.14.10\nRAM: 8GB\nShell: bash\n";
+          break;
+        case "kde":
+          css = `body { background: #1d2330; color: #00bcd4; font-family: 'Arial'; }`;
+          break;
+        case "gnome":
+          css = `body { background: #2e3436; color: #eeeeec; font-family: 'Ubuntu'; }`;
+          break;
+        case "ubuntu":
+          css = `body { background: #300a24; color: #ff6; font-family: monospace; }`;
+          break;
+        default:
+          css = ``;
+      }
+      themeStyle.innerHTML = themeStyle.innerHTML.split("</style>")[0] + css + "</style>";
     }
   </script>
 </body>
