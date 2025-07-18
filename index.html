@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Slider of Doom</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin: 50px;
+      background: #f2f2f2;
+    }
+    .slider {
+      width: 60%;
+      margin: 10px auto;
+      display: block;
+    }
+    #lostScreen {
+      display: none;
+    }
+    .popup {
+      position: absolute;
+      background: #fffd;
+      border: 1px solid #aaa;
+      padding: 10px;
+      font-size: 14px;
+      animation: pop 0.3s ease;
+    }
+    @keyframes pop {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Slider of Doom</h1>
+  <p>Keep all sliders away from the left. If even one reaches 0, you lose.</p>
+
+  <label for="difficulty">Difficulty:</label>
+  <select id="difficulty">
+    <option value="1">Easy (1 slider)</option>
+    <option value="3">Medium (3 sliders)</option>
+    <option value="5">Hard (5 sliders)</option>
+    <option value="10">Insanity (10 sliders)</option>
+  </select>
+  <button onclick="startGame()">Start Game</button>
+
+  <div id="gameArea"></div>
+  <div id="timer">Time: 0s</div>
+
+  <div id="lostScreen">
+    <h2>You just lost.</h2>
+    <button onclick="startGame()">Restart</button>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const timerDisplay = document.getElementById('timer');
+    const lostScreen = document.getElementById('lostScreen');
+    const difficultySelect = document.getElementById('difficulty');
+
+    let sliders = [];
+    let sliderValues = [];
+    let dragging = [];
+    let gameInterval;
+    let time = 0;
+
+    function startGame() {
+      reset();
+
+      const difficulty = parseInt(difficultySelect.value);
+      for (let i = 0; i < difficulty; i++) {
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = 0;
+        slider.max = 100;
+        slider.value = 100;
+        slider.classList.add('slider');
+
+        slider.dataset.index = i;
+        gameArea.appendChild(slider);
+
+        sliderValues[i] = 100;
+        dragging[i] = false;
+
+        slider.addEventListener('mousedown', () => dragging[i] = true);
+        slider.addEventListener('mouseup', () => dragging[i] = false);
+        slider.addEventListener('input', () => {
+          sliderValues[i] = parseInt(slider.value);
+        });
+
+        sliders.push(slider);
+      }
+
+      // Start timer + slider decay
+      time = 0;
+      gameInterval = setInterval(() => {
+        time++;
+        timerDisplay.textContent = `Time: ${time}s`;
+
+        sliders.forEach((slider, i) => {
+          if (!dragging[i] && sliderValues[i] > 0) {
+            sliderValues[i] -= 1;
+            slider.value = sliderValues[i];
+          }
+
+          if (sliderValues[i] <= 0) {
+            youLose();
+          }
+        });
+
+        maybeSpawnPopup();
+      }, 100);
+    }
+
+    function youLose() {
+      clearInterval(gameInterval);
+      lostScreen.style.display = "block";
+    }
+
+    function reset() {
+      clearInterval(gameInterval);
+      sliders = [];
+      sliderValues = [];
+      dragging = [];
+      gameArea.innerHTML = "";
+      lostScreen.style.display = "none";
+      timerDisplay.textContent = "Time: 0s";
+      document.querySelectorAll(".popup").forEach(p => p.remove());
+    }
+
+    function maybeSpawnPopup() {
+      if (Math.random() < 0.05) {
+        const popup = document.createElement('div');
+        popup.classList.add('popup');
+        popup.style.left = Math.random() * 80 + "%";
+        popup.style.top = Math.random() * 80 + "%";
+
+        const messages = [
+          "🔔 Notification: Your PC is slow!",
+          "😡 Stop dragging!",
+          "🔥 Free Robux???",
+          "💾 Updating Windows...",
+          "🔊 LOUD SOUND INCOMING!!!",
+          "Woah, its wulzy (gd reference)",
+          "😂 You thought you had this"
+        ];
+        popup.textContent = messages[Math.floor(Math.random() * messages.length)];
+
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 2500);
+      }
+    }
+  </script>
+</body>
+</html>
