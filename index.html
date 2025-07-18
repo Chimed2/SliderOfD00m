@@ -63,7 +63,7 @@
 
     let sliders = [];
     let sliderValues = [];
-    let dragging = [];
+    let lastMoved = [];
     let gameInterval;
     let time = 0;
 
@@ -83,32 +83,12 @@
         gameArea.appendChild(slider);
 
         sliderValues[i] = 100;
-        dragging[i] = false;
+        lastMoved[i] = Date.now();
 
-        let isMouseDown = false;
-
-        slider.addEventListener('mousedown', () => {
-          isMouseDown = true;
-        });
-        slider.addEventListener('mouseup', () => {
-          isMouseDown = false;
-          dragging[i] = false;
-        });
-        slider.addEventListener('mouseleave', () => {
-          isMouseDown = false;
-          dragging[i] = false;
-        });
         slider.addEventListener('input', () => {
-          sliderValues[i] = parseInt(slider.value);
-        });
-        slider.addEventListener('mousemove', () => {
-          if (isMouseDown) {
-            dragging[i] = true;
-            clearTimeout(slider.dragTimeout);
-            slider.dragTimeout = setTimeout(() => {
-              dragging[i] = false;
-            }, 250);
-          }
+          const val = parseInt(slider.value);
+          sliderValues[i] = val;
+          lastMoved[i] = Date.now();
         });
 
         sliders.push(slider);
@@ -120,7 +100,9 @@
         timerDisplay.textContent = `Time: ${time}s`;
 
         sliders.forEach((slider, i) => {
-          if (!dragging[i] && sliderValues[i] > 0) {
+          const now = Date.now();
+
+          if (now - lastMoved[i] > 1000 && sliderValues[i] > 0) {
             sliderValues[i] -= 1;
             slider.value = sliderValues[i];
           }
@@ -143,7 +125,7 @@
       clearInterval(gameInterval);
       sliders = [];
       sliderValues = [];
-      dragging = [];
+      lastMoved = [];
       gameArea.innerHTML = "";
       lostScreen.style.display = "none";
       timerDisplay.textContent = "Time: 0s";
@@ -163,8 +145,8 @@
           "🔥 Free Robux???",
           "💾 Updating Windows...",
           "🔊 LOUD SOUND INCOMING!!!",
-          "Woah, it's wulzy (gd reference)",
-          "😂 You thought you had this"
+          "😈 You’re being watched",
+          "🧠 You just blinked"
         ];
         popup.textContent = messages[Math.floor(Math.random() * messages.length)];
 
