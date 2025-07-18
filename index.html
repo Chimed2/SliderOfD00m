@@ -9,6 +9,7 @@
       text-align: center;
       margin: 50px;
       background: #f2f2f2;
+      overflow: hidden;
     }
     .slider {
       width: 60%;
@@ -25,6 +26,7 @@
       padding: 10px;
       font-size: 14px;
       animation: pop 0.3s ease;
+      z-index: 1000;
     }
     @keyframes pop {
       from { transform: scale(0.5); opacity: 0; }
@@ -76,23 +78,42 @@
         slider.max = 100;
         slider.value = 100;
         slider.classList.add('slider');
-
         slider.dataset.index = i;
+
         gameArea.appendChild(slider);
 
         sliderValues[i] = 100;
         dragging[i] = false;
 
-        slider.addEventListener('mousedown', () => dragging[i] = true);
-        slider.addEventListener('mouseup', () => dragging[i] = false);
+        let isMouseDown = false;
+
+        slider.addEventListener('mousedown', () => {
+          isMouseDown = true;
+        });
+        slider.addEventListener('mouseup', () => {
+          isMouseDown = false;
+          dragging[i] = false;
+        });
+        slider.addEventListener('mouseleave', () => {
+          isMouseDown = false;
+          dragging[i] = false;
+        });
         slider.addEventListener('input', () => {
           sliderValues[i] = parseInt(slider.value);
+        });
+        slider.addEventListener('mousemove', () => {
+          if (isMouseDown) {
+            dragging[i] = true;
+            clearTimeout(slider.dragTimeout);
+            slider.dragTimeout = setTimeout(() => {
+              dragging[i] = false;
+            }, 250);
+          }
         });
 
         sliders.push(slider);
       }
 
-      // Start timer + slider decay
       time = 0;
       gameInterval = setInterval(() => {
         time++;
@@ -142,7 +163,7 @@
           "🔥 Free Robux???",
           "💾 Updating Windows...",
           "🔊 LOUD SOUND INCOMING!!!",
-          "Woah, its wulzy (gd reference)",
+          "Woah, it's wulzy (gd reference)",
           "😂 You thought you had this"
         ];
         popup.textContent = messages[Math.floor(Math.random() * messages.length)];
